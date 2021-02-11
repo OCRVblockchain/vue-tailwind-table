@@ -1,2 +1,8 @@
-import VueTailwindModal from './components/VueTailwindModal.vue'
-export default VueTailwindModal
+import {Table, Row, Cell}  from './components/VueTailwindTable/index'
+import './assets/styles/tailwind.css'
+
+export {
+    Table,
+    Row,
+    Cell
+}
