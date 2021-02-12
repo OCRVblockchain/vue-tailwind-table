@@ -1,6 +1,6 @@
 module.exports = {
     purge: {
-        enabled: true,
+        enabled: false,
         content: [
             './src/**/*.vue',
             './src/**/*.js',
@@ -9,11 +9,16 @@ module.exports = {
     },
     darkMode: false, // or 'media' or 'class'
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                'montserrat': ['Montserrat'],
+            }
+        },
     },
     variants: {
         extend: {
-            borderRadius: ['first', 'last']
+            borderRadius: ['first', 'last'],
+            borderWidth: ['last']
         },
     },
     plugins: [],
