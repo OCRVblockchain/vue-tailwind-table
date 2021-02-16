@@ -1,5 +1,15 @@
 <template>
-  <main>
+  <main class="">
+    <section v-if="filtered" class="mb-3 p-3 rounded-lg border border-gray-200">
+      <div class="flex items-center">
+        <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input v-model="search" class="pl-2 w-full outline-none text-gray-500" type="text" placeholder="Поиск">
+      </div>
+    </section>
     <section class="border border-gray-200 rounded-lg overflow-auto">
       <table class="w-full divide-y divide-gray-200">
         <thead :class="theadClass" class="bg-gray-100">
@@ -28,8 +38,8 @@
         </tbody>
       </table>
     </section>
-    <section v-if="paginated" class="mt-3">
-      <VueTailwindPagination :current="_currentPage" :total="filteredData.length" :per-page="perPage" @page-changed="_currentPage = $event"/>
+    <section v-if="paginated" class="mt-3 overflow-auto">
+      <VueTailwindPagination :current="_currentPage" :total="remote ? totalCount : filteredData.length" :per-page="perPage" @page-changed="changePage($event)"/>
     </section>
   </main>
 </template>
@@ -44,6 +54,7 @@ export default defineComponent({
   name: 'Table',
   components: {Row, Cell, VueTailwindPagination},
   props: {
+    remote: Boolean,
     data: Array,
     headers: Array,
     theadClass: String,
@@ -62,17 +73,22 @@ export default defineComponent({
       type: Number,
       default: 1
     },
+    totalCount: {
+      type: Number,
+      default: 0
+    },
     perPage: {
       type: Number,
       default: 5
     },
-    filter: String
+    filtered: Boolean
   },
   data() {
     return {
       _currentPage: this.currentPage,
       _currentSort: this.currentSort,
-      _currentSortDir: this.currentSortDir
+      _currentSortDir: this.currentSortDir,
+      search: ''
     }
   },
   methods: {
@@ -81,11 +97,17 @@ export default defineComponent({
         this._currentSortDir = this._currentSortDir === 'asc' ? 'desc' : 'asc';
       }
       this._currentSort = s;
+
+      this.$emit('sort', this._currentSort, this._currentSortDir)
+    },
+    changePage($event) {
+      this._currentPage = $event
+      this.$emit('page-changed', $event)
     }
   },
   computed: {
     sortedData() {
-      return this.sorted ? this.data.sort((a, b) => {
+      return !this.remote && this.sorted ? this.data.sort((a, b) => {
         let modifier = 1
         if (this._currentSortDir === 'desc') modifier = -1
         if (a[this._currentSort] < b[this._currentSort]) return -1 * modifier
@@ -94,10 +116,12 @@ export default defineComponent({
       }) : this.data
     },
     filteredData() {
-      return this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.filter.toLowerCase())).length > 0)
+      return !this.remote && this.filtered ?
+          this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
+          : this.sortedData
     },
     paginatedData() {
-      return this.paginated ? this.filteredData.filter((row, index) => {
+      return !this.remote && this.paginated ? this.filteredData.filter((row, index) => {
         let start = (this._currentPage - 1) * this.perPage
         let end = this._currentPage * this.perPage
         if (index >= start && index < end) return true

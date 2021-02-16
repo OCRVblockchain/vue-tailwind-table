@@ -1,40 +1,30 @@
 <template>
-  <main class="min-w-min min-h-screen bg-blue-50">
-    <div class="p-5">
+  <main class="w-full min-h-screen bg-blue-50">
+    <div class="w-full p-5">
       <TabsWrapper>
         <Tab title="Tab 1" :isActive="activeTab === 'tab1'" @click="clickTab('tab1')"/>
         <Tab title="Tab 2" :isActive="activeTab === 'tab2'" @click="clickTab('tab2')"/>
         <Tab title="Tab 3" :isActive="activeTab === 'tab3'" @click="clickTab('tab3')"/>
       </TabsWrapper>
       <TabsContent>
-        <div v-if="activeTab === 'tab1'">
-          <section class="p-3 rounded-lg border border-gray-200">
-            <div class="flex items-center">
-              <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                   stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-              </svg>
-              <input v-model="search" class="pl-2 w-full outline-none text-gray-500" type="text" placeholder="Поиск">
-            </div>
-          </section>
-          <section class="mt-3">
-            <Table :data="data" :headers="headers" :filter="search" sorted paginated :per-page="2">
-              <template v-slot:row="props">
-                <Row v-for="(row, index) in props.data" :key="index" :index="index" striped>
-                  <Cell>{{ row.name }}</Cell>
-                  <Cell>{{ row.email }}</Cell>
-                  <Cell>
+        <div class="" v-if="activeTab === 'tab1'">
+          <Table :data="data" :headers="headers" remote sorted @sort="onSort" paginated :per-page="20"
+                 :total-count="totalCount" @page-changed="currentPage = $event">
+            <template v-slot:row="props">
+              <Row v-for="(row, index) in props.data" :key="index" :index="index" striped>
+                <Cell>{{ row.original_title }}</Cell>
+                <Cell>
                     <span
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 text-white">
-                      {{ row.status }}
+                      {{ row.vote_average }}
                     </span>
-                  </Cell>
-                  <Cell>{{ row.sales }}</Cell>
-                </Row>
-              </template>
-            </Table>
-          </section>
+                </Cell>
+                <Cell>{{ row.vote_count }}</Cell>
+                <Cell>{{ row.release_date }}</Cell>
+                <Cell td-class="whitespace-pre-wrap">{{ truncateString(row.overview, 80) }}</Cell>
+              </Row>
+            </template>
+          </Table>
         </div>
         <div v-if="activeTab === 'tab2'">
           Aspernatur cupiditate, dolorum earum eius ex facilis!
@@ -51,6 +41,10 @@
 import {defineComponent} from 'vue'
 import {Cell, Row, Table} from './VueTailwindTable/index.ts'
 import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
+import axios from 'axios'
+
+const ApiUrl = 'https://api.themoviedb.org/3/'
+const ApiKey = '563e730415c71b1608e0b7c05839d879'
 
 export default defineComponent({
   name: 'Table Example',
@@ -65,39 +59,50 @@ export default defineComponent({
   data() {
     return {
       activeTab: 'tab1',
-      search: '',
-      headers: ['name', 'email', 'status', 'sales'],
-      data: [
-        {
-          name: 'Alfonso Bribiesca',
-          email: 'alfonso@vexilo.com',
-          status: 'active',
-          sales: 9999
-        },
-        {
-          name: 'Saida Redondo',
-          email: 'saida@gmail.com',
-          status: 'active',
-          sales: 1500
-        },
-        {
-          name: 'Regina Bribiesca',
-          email: 'regina@gmail.com',
-          status: 'active',
-          sales: -200.50
-        },
-        {
-          name: 'Ricardo Martinez',
-          email: 'rickyrickky@gmail.com',
-          status: 'active',
-          sales: 0.0
-        }
-      ]
+      data: [],
+      headers: ['title', 'vote_average', 'vote_count', 'release_date', 'overview'],
+      currentPage: 1,
+      totalCount: 0,
+      sortField: '',
+      sortOrder: 'asc'
+    }
+  },
+  mounted() {
+    this.fetchMoviesData()
+  },
+  watch: {
+    currentPage() {
+      this.fetchMoviesData()
     }
   },
   methods: {
     clickTab(name) {
       this.activeTab = name
+    },
+    onSort(field, order) {
+      this.sortField = field
+      this.sortOrder = order
+      this.fetchMoviesData()
+    },
+    fetchMoviesData() {
+      const params = {
+        page: this.currentPage,
+        sort_by: `${this.sortField}.${this.sortOrder}`,
+        api_key: ApiKey
+      }
+
+      return axios.get(ApiUrl + 'discover/movie', {params})
+          .then(response => {
+            this.totalCount = response.data.total_results
+            this.data = response.data.results
+          })
+          .catch(e => console.log)
+    },
+    truncateString(str, num) {
+      if (str.length <= num) {
+        return str
+      }
+      return str.slice(0, num) + '...'
     }
   }
 })
