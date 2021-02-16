@@ -8,8 +8,18 @@
       </TabsWrapper>
       <TabsContent>
         <div class="" v-if="activeTab === 'tab1'">
-          <Table :data="data" :headers="headers" remote sorted @sort="onSort" paginated :per-page="20"
-                 :total-count="totalCount" @page-changed="currentPage = $event">
+          <Table
+              :data="data"
+              :headers="headers"
+              remote
+
+              sorted
+              @sort="onSort"
+
+              paginated
+              :per-page="20"
+              :total-count="totalCount"
+              @page-changed="currentPage = $event">
             <template v-slot:row="props">
               <Row v-for="(row, index) in props.data" :key="index" :index="index" striped>
                 <Cell>{{ row.original_title }}</Cell>
@@ -42,12 +52,14 @@ import {defineComponent} from 'vue'
 import {Cell, Row, Table} from './VueTailwindTable/index.ts'
 import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
 import axios from 'axios'
+import utils from '../utils/utils.ts'
 
 const ApiUrl = 'https://api.themoviedb.org/3/'
 const ApiKey = '563e730415c71b1608e0b7c05839d879'
 
 export default defineComponent({
   name: 'Table Example',
+  mixins: [ utils ],
   components: {
     TabsWrapper,
     TabsContent,
@@ -63,8 +75,8 @@ export default defineComponent({
       headers: ['title', 'vote_average', 'vote_count', 'release_date', 'overview'],
       currentPage: 1,
       totalCount: 0,
-      sortField: '',
-      sortOrder: 'asc'
+      sortField: 'vote_count',
+      sortOrder: 'desc'
     }
   },
   mounted() {
@@ -97,12 +109,6 @@ export default defineComponent({
             this.data = response.data.results
           })
           .catch(e => console.log)
-    },
-    truncateString(str, num) {
-      if (str.length <= num) {
-        return str
-      }
-      return str.slice(0, num) + '...'
     }
   }
 })
