@@ -1,5 +1,5 @@
 <template>
-  <main class="">
+  <main>
     <section v-if="filtered" class="mb-3 p-3 rounded-lg border border-gray-200">
       <div class="flex items-center">
         <svg class="w-5 h-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -13,22 +13,24 @@
     <section class="border border-gray-200 rounded-lg overflow-auto">
       <table class="w-full divide-y divide-gray-200">
         <thead :class="theadClass" class="bg-gray-100">
-        <slot name="head" :data="headers">
+        <slot name="head" :data="columns">
           <Row>
             <Cell @click="sorted && sort(value)" td-class="text-left text-xs font-medium uppercase tracking-wider"
-                  v-for="(value, key) in headers" :key="key">{{ value }}
+                  v-for="(value, key) in columns" :key="key">{{ value }}
             </Cell>
           </Row>
         </slot>
         </thead>
         <tbody :class="tbodyClass" class="bg-white divide-y divide-gray-200">
-        <slot name="row" :data="paginatedData">
-          <Row v-if="paginatedData.length > 0" v-for="(row, index) in paginatedData" :key="index" :index="index"
+        <slot name="row" :data="computedData">
+          <Row v-if="computedData.length > 0" v-for="(row, index) in computedData" :key="index" :index="index"
                :tr-class="trClass" :striped="striped">
-            <Cell :td-class="tdClass" v-for="(value, key) in row" :value="value" :key="key">{{ value }}</Cell>
+            <Cell :td-class="tdClass" v-for="(col, index) in columns" :value="row[col]" :key="index">
+              {{ row[col] }}
+            </Cell>
           </Row>
         </slot>
-        <tr v-if="paginatedData.length === 0">
+        <tr v-if="computedData.length === 0">
           <td colspan="100%">
             <div class="w-full px-6 py-4 flex justify-center whitespace-nowrap text-gray-500">
               Data not found
@@ -39,7 +41,8 @@
       </table>
     </section>
     <section v-if="paginated" class="mt-3 overflow-auto">
-      <VueTailwindPagination :current="_currentPage" :total="remote ? totalCount : filteredData.length" :per-page="perPage" @page-changed="changePage($event)"/>
+      <VueTailwindPagination :current="_currentPage" :total="remote ? totalCount : filteredData.length"
+                             :per-page="perPage" @page-changed="changePage($event)"/>
     </section>
   </main>
 </template>
@@ -51,23 +54,36 @@ import Cell from './Cell.vue'
 import VueTailwindPagination from '@ocrv/vue-tailwind-pagination'
 
 export default defineComponent({
-  name: 'Table',
+  name: 'VueTailwindTable__Table',
   components: {Row, Cell, VueTailwindPagination},
   props: {
     remote: Boolean,
-    data: Array,
-    headers: Array,
+
+    columns: {
+      type: Array,
+      default: []
+    },
+    data: {
+      type: Array,
+      default: [],
+      required: true
+    },
+
     theadClass: String,
     tbodyClass: String,
     trClass: String,
     tdClass: String,
+
     striped: Boolean,
+    filtered: Boolean,
+
     sorted: Boolean,
     currentSort: String,
     currentSortDir: {
       type: String,
       default: 'asc'
     },
+
     paginated: Boolean,
     currentPage: {
       type: Number,
@@ -75,13 +91,12 @@ export default defineComponent({
     },
     totalCount: {
       type: Number,
-      default: 0
+      default: 20
     },
     perPage: {
       type: Number,
       default: 5
-    },
-    filtered: Boolean
+    }
   },
   data() {
     return {
@@ -97,7 +112,6 @@ export default defineComponent({
         this._currentSortDir = this._currentSortDir === 'asc' ? 'desc' : 'asc';
       }
       this._currentSort = s;
-
       this.$emit('sort', this._currentSort, this._currentSortDir)
     },
     changePage($event) {
@@ -107,7 +121,7 @@ export default defineComponent({
   },
   computed: {
     sortedData() {
-      return !this.remote && this.sorted ? this.data.sort((a, b) => {
+      return this.sorted ? this.data.sort((a, b) => {
         let modifier = 1
         if (this._currentSortDir === 'desc') modifier = -1
         if (a[this._currentSort] < b[this._currentSort]) return -1 * modifier
@@ -116,16 +130,17 @@ export default defineComponent({
       }) : this.data
     },
     filteredData() {
-      return !this.remote && this.filtered ?
-          this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
-          : this.sortedData
+      return this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
     },
     paginatedData() {
-      return !this.remote && this.paginated ? this.filteredData.filter((row, index) => {
+      return this.paginated ? this.filteredData.filter((row, index) => {
         let start = (this._currentPage - 1) * this.perPage
         let end = this._currentPage * this.perPage
         if (index >= start && index < end) return true
       }) : this.filteredData
+    },
+    computedData() {
+      return this.remote ? this.data : this.paginatedData
     }
   }
 })

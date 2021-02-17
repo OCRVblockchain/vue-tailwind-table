@@ -7,11 +7,12 @@
         <Tab title="Tab 3" :isActive="activeTab === 'tab3'" @click="clickTab('tab3')"/>
       </TabsWrapper>
       <TabsContent>
-        <div class="" v-if="activeTab === 'tab1'">
+        <div v-if="activeTab === 'tab1'">
           <Table
-              :data="data"
-              :headers="headers"
               remote
+
+              :data="data"
+              :columns="columns"
 
               sorted
               @sort="onSort"
@@ -24,10 +25,9 @@
               <Row v-for="(row, index) in props.data" :key="index" :index="index" striped>
                 <Cell>{{ row.original_title }}</Cell>
                 <Cell>
-                    <span
-                        class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 text-white">
-                      {{ row.vote_average }}
-                    </span>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 text-white">
+                    {{ row.vote_average }}
+                  </span>
                 </Cell>
                 <Cell>{{ row.vote_count }}</Cell>
                 <Cell>{{ row.release_date }}</Cell>
@@ -51,6 +51,7 @@
 import {defineComponent} from 'vue'
 import {Cell, Row, Table} from './VueTailwindTable/index.ts'
 import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
+
 import axios from 'axios'
 import utils from '../utils/utils.ts'
 
@@ -72,9 +73,9 @@ export default defineComponent({
     return {
       activeTab: 'tab1',
       data: [],
-      headers: ['title', 'vote_average', 'vote_count', 'release_date', 'overview'],
+      columns: ['title', 'vote_average', 'vote_count', 'release_date', 'overview'],
       currentPage: 1,
-      totalCount: 0,
+      totalCount: 20,
       sortField: 'vote_count',
       sortOrder: 'desc'
     }

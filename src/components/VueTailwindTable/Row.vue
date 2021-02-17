@@ -8,7 +8,7 @@
 import {defineComponent} from 'vue'
 
 export default defineComponent({
-  name: 'Table Row',
+  name: 'VueTailwindTable__Row',
   props: {
     index: Number,
     trClass: String,

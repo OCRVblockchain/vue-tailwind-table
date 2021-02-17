@@ -8,7 +8,7 @@
 import {defineComponent} from 'vue'
 
 export default defineComponent({
-  name: 'Table Cell',
+  name: 'VueTailwindTable__Cell',
   props: {
     tdClass: String
   }
