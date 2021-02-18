@@ -15,22 +15,41 @@
         <thead :class="theadClass" class="bg-gray-100">
         <slot name="head" :data="columns">
           <Row>
-            <Cell @click="sorted && sort(value)" td-class="text-left text-xs font-medium uppercase tracking-wider"
-                  v-for="(value, key) in columns" :key="key">{{ value }}
+            <Cell @click="sorted && sort(col.field)"
+                v-for="(col, index) in columns"
+                :key="index"
+                td-class="text-left text-xs font-medium uppercase tracking-wider">
+              <div class="flex items-center">
+                {{ col.label }}
+                <div v-if="_currentSort === col.field">
+                  <svg v-if="_currentSortDir === 'desc'" class="ml-2 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                  </svg>
+                  <svg v-if="_currentSortDir === 'asc'" class="ml-2 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                  </svg>
+                </div>
+              </div>
             </Cell>
           </Row>
         </slot>
         </thead>
         <tbody :class="tbodyClass" class="bg-white divide-y divide-gray-200">
-        <slot name="row" :data="computedData">
-          <Row v-if="computedData.length > 0" v-for="(row, index) in computedData" :key="index" :index="index"
-               :tr-class="trClass" :striped="striped">
-            <Cell :td-class="tdClass" v-for="(col, index) in columns" :value="row[col]" :key="index">
+        <slot name="row" :data="computedRows">
+          <Row v-if="computedRows.length > 0"
+              v-for="(row, index) in computedRows" :key="index"
+              :index="index"
+              :tr-class="trClass"
+              :striped="striped">
+            <Cell v-for="(col, index) in columns"
+                :key="index"
+                :value="row[col]"
+                :td-class="tdClass">
               {{ row[col] }}
             </Cell>
           </Row>
         </slot>
-        <tr v-if="computedData.length === 0">
+        <tr v-if="computedRows.length === 0">
           <td colspan="100%">
             <div class="w-full px-6 py-4 flex justify-center whitespace-nowrap text-gray-500">
               Data not found
@@ -41,8 +60,11 @@
       </table>
     </section>
     <section v-if="paginated" class="mt-3 overflow-auto">
-      <VueTailwindPagination :current="_currentPage" :total="remote ? totalCount : filteredData.length"
-                             :per-page="perPage" @page-changed="changePage($event)"/>
+      <VueTailwindPagination
+          :current="_currentPage"
+          :total="remote ? totalCount : filteredRows.length"
+          :per-page="perPage"
+          @page-changed="changePage($event)"/>
     </section>
   </main>
 </template>
@@ -64,7 +86,7 @@ export default defineComponent({
       type: Array,
       required: true
     },
-    data: {
+    rows: {
       type: Array,
       required: true
     },
@@ -120,27 +142,27 @@ export default defineComponent({
     }
   },
   computed: {
-    sortedData(): object[] {
-      return this.sorted ? this.data.sort((a, b) => {
+    sortedRows(): object[] {
+      return this.sorted ? this.rows.sort((a, b) => {
         let modifier = 1
         if (this._currentSortDir === 'desc') modifier = -1
         if (a[this._currentSort] < b[this._currentSort]) return -1 * modifier
         if (a[this._currentSort] > b[this._currentSort]) return 1 * modifier
         return 0
-      }) : this.data
+      }) : this.rows
     },
-    filteredData(): object[] {
-      return this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
+    filteredRows(): object[] {
+      return this.sortedRows.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
     },
-    paginatedData(): object[] {
-      return this.paginated ? this.filteredData.filter((row, index) => {
+    paginatedRows(): object[] {
+      return this.paginated ? this.filteredRows.filter((row, index) => {
         let start = (this._currentPage - 1) * this.perPage
         let end = this._currentPage * this.perPage
         if (index >= start && index < end) return true
-      }) : this.filteredData
+      }) : this.filteredRows
     },
-    computedData(): object[] {
-      return this.remote ? this.data : this.paginatedData
+    computedRows(): object[] {
+      return this.remote ? this.rows : this.paginatedRows
     }
   }
 })

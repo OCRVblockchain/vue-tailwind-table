@@ -10,10 +10,12 @@
         <div v-if="activeTab === 'tab1'">
           <Table
               remote
-              :data="data"
               :columns="columns"
+              :rows="rows"
 
               sorted
+              current-sort="vote_count"
+              current-sort-dir="desc"
               @sort="onSort"
 
               paginated
@@ -24,7 +26,8 @@
               <Row v-for="(row, index) in props.data" :key="index" :index="index" striped>
                 <Cell>{{ row.original_title }}</Cell>
                 <Cell>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 text-white">
+                  <span
+                      class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gradient-to-r from-blue-400 to-indigo-400 text-white">
                     {{ row.vote_average }}
                   </span>
                 </Cell>
@@ -51,12 +54,12 @@ import {defineComponent} from 'vue'
 import axios from 'axios'
 import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
 import {Cell, Row, Table} from '../src/components/VueTailwindTable'
-import { ApiKey, ApiUrl, ApiPath } from "./network"
+import {ApiKey, ApiPath, ApiUrl} from "./network"
 import utils from './utils'
 
 export default defineComponent({
   name: 'Table Example',
-  mixins: [ utils ],
+  mixins: [utils],
   components: {
     TabsWrapper,
     TabsContent,
@@ -68,8 +71,29 @@ export default defineComponent({
   data() {
     return {
       activeTab: 'tab1',
-      data: [],
-      columns: ['title', 'vote_average', 'vote_count', 'release_date', 'overview'],
+      columns: [
+        {
+          label: 'Title',
+          field: 'title',
+        },
+        {
+          label: 'Vote Average',
+          field: 'vote_average',
+        },
+        {
+          label: 'Vote Count',
+          field: 'vote_count',
+        },
+        {
+          label: 'Release Date',
+          field: 'release_date',
+        },
+        {
+          label: 'Overview',
+          field: 'overview',
+        }
+      ],
+      rows: [],
       currentPage: 1,
       totalCount: 20,
       sortField: 'vote_count',
@@ -103,7 +127,7 @@ export default defineComponent({
       return axios.get(ApiUrl + ApiPath, {params})
           .then(response => {
             this.totalCount = response.data.total_results
-            this.data = response.data.results
+            this.rows = response.data.results
           })
           .catch(e => console.log)
     }
