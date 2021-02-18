@@ -20,11 +20,11 @@
     "style": "tailwindcss build src/assets/styles/index.css -o src/assets/styles/tailwind.css"
   },
   "dependencies": {
-    "@ocrv/vue-tailwind-pagination": "0.0.3",
     "vue": "^3.0.5"
   },
   "devDependencies": {
     "@ocrv/vue-tailwind-tabs": "^1.0.2",
+    "@ocrv/vue-tailwind-pagination": "0.0.3",
     "@types/node": "^14.14.21",
     "@vitejs/plugin-vue": "^1.0.4",
     "@vue/compiler-sfc": "^3.0.5",

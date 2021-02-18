@@ -14,6 +14,7 @@
     "plugins": [{ "name": "@vuedx/typescript-plugin-vue" }]
   },
   "include": [
+    "types",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",

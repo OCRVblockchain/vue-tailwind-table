@@ -49,9 +49,10 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
+import VueTailwindPagination from '@ocrv/vue-tailwind-pagination'
 import Row from './Row.vue'
 import Cell from './Cell.vue'
-import VueTailwindPagination from '@ocrv/vue-tailwind-pagination'
+import { Data } from './types'
 
 export default defineComponent({
   name: 'VueTailwindTable__Table',
@@ -61,11 +62,10 @@ export default defineComponent({
 
     columns: {
       type: Array,
-      default: []
+      required: true
     },
     data: {
       type: Array,
-      default: [],
       required: true
     },
 
@@ -98,7 +98,7 @@ export default defineComponent({
       default: 5
     }
   },
-  data() {
+  data(): Data {
     return {
       _currentPage: this.currentPage,
       _currentSort: this.currentSort,
@@ -107,20 +107,20 @@ export default defineComponent({
     }
   },
   methods: {
-    sort(s) {
+    sort(s: string): void {
       if (s === this._currentSort) {
         this._currentSortDir = this._currentSortDir === 'asc' ? 'desc' : 'asc';
       }
       this._currentSort = s;
       this.$emit('sort', this._currentSort, this._currentSortDir)
     },
-    changePage($event) {
+    changePage($event: any): void {
       this._currentPage = $event
       this.$emit('page-changed', $event)
     }
   },
   computed: {
-    sortedData() {
+    sortedData(): object[] {
       return this.sorted ? this.data.sort((a, b) => {
         let modifier = 1
         if (this._currentSortDir === 'desc') modifier = -1
@@ -129,17 +129,17 @@ export default defineComponent({
         return 0
       }) : this.data
     },
-    filteredData() {
+    filteredData(): object[] {
       return this.sortedData.filter(row => Object.values(row).filter(value => value.toString().toLowerCase().includes(this.search.toLowerCase())).length > 0)
     },
-    paginatedData() {
+    paginatedData(): object[] {
       return this.paginated ? this.filteredData.filter((row, index) => {
         let start = (this._currentPage - 1) * this.perPage
         let end = this._currentPage * this.perPage
         if (index >= start && index < end) return true
       }) : this.filteredData
     },
-    computedData() {
+    computedData(): object[] {
       return this.remote ? this.data : this.paginatedData
     }
   }

@@ -10,7 +10,6 @@
         <div v-if="activeTab === 'tab1'">
           <Table
               remote
-
               :data="data"
               :columns="columns"
 
@@ -49,14 +48,11 @@
 
 <script lang="ts">
 import {defineComponent} from 'vue'
-import {Cell, Row, Table} from './VueTailwindTable/index.ts'
-import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
-
 import axios from 'axios'
-import utils from '../utils/utils.ts'
-
-const ApiUrl = 'https://api.themoviedb.org/3/'
-const ApiKey = '563e730415c71b1608e0b7c05839d879'
+import {Tab, TabsContent, TabsWrapper} from '@ocrv/vue-tailwind-tabs'
+import {Cell, Row, Table} from '../src/components/VueTailwindTable'
+import { ApiKey, ApiUrl, ApiPath } from "./network"
+import utils from './utils'
 
 export default defineComponent({
   name: 'Table Example',
@@ -104,7 +100,7 @@ export default defineComponent({
         api_key: ApiKey
       }
 
-      return axios.get(ApiUrl + 'discover/movie', {params})
+      return axios.get(ApiUrl + ApiPath, {params})
           .then(response => {
             this.totalCount = response.data.total_results
             this.data = response.data.results
